@@ -1,9 +1,13 @@
 import os
-from datetime import date
+from typing import List, Union
 
-from openpyxl import load_workbook
-from openpyxl.styles import Border, Side, Font, PatternFill, Alignment
 from requests_html import HTMLSession
+
+from excel_functions import excel_writing
+from sql_functions import (
+    get_last_entry, diff_dates, insert_entry, estimated_values, add_days,
+    date_now
+)
 
 START_PRICE = 600
 
@@ -53,47 +57,13 @@ def visualization(count: int) -> str:
     return f'Parsing of {zero(count)}{count}-{suffix} page' + ' ' * empty_space + ' ...'
 
 
-def excel_writing(filename: str) -> None:
-    """Fills the excel file"""
-    # working with file filename ('Example.xlsm')
-    book = load_workbook(filename=filename, read_only=False, keep_vba=True)
-    sheet = book.active
-    # next_row - a string to be added to the end of an existing table of the file filename
-    next_row = sheet.max_row + 1
-    # variable for formatting the added string to the current sheet of the file filename
-    medium_border = Border(left=Side(style='medium'),
-                           right=Side(style='medium'),
-                           top=Side(style='medium'),
-                           bottom=Side(style='medium'))
-    # if the date of the first cell of the last row of the active sheet of the file
-    # filename is different from the current date
-    if str(sheet[sheet.max_row][0].value)[0:10] != str(date.today()):
-        # add the current date to the beginning of the list final_list
-        final_list.insert(0, date.today())
-        # add a new line to the active sheet of the filename file after the last one
-        sheet.append(final_list)
-        # set the formatting of the added line in the active sheet of the filename file
-        sheet.row_dimensions[next_row].height = 23.6
-        sheet[next_row][0].fill = PatternFill(fill_type='solid', start_color='FFB6FCC5')
-        sheet[next_row][9].fill = PatternFill(fill_type='solid', start_color='FFF2F2F2')
-        sheet[next_row][10].fill = PatternFill(fill_type='solid', start_color='FFF2F2F2')
-        sheet[next_row][0].font = Font(size=10)
-        for i in range(1, 12):
-            sheet.cell(row=next_row, column=i).border = medium_border
-            sheet.cell(row=next_row, column=i).alignment = Alignment(
-                horizontal='center', vertical='center')
-        for i in range(1, 11):
-            sheet[next_row][i].font = Font(size=18)
-        # set the numeric date format (column A) as in the previous cell on top
-        sheet[next_row][0].number_format = sheet[next_row - 1][0].number_format
-    # save the changes to the file
-    book.save(filename)
-
-
 towns = ('malaga', 'torremolinos')
-final_list = []
+final_values_list = []
 session = HTMLSession()
 counter = 0
+excel_file = 'Estadistica.xlsm'
+db = 'db.sqlite3'
+table_name = 'prices'
 
 if __name__ == '__main__':
     for town in towns:
@@ -101,18 +71,35 @@ if __name__ == '__main__':
             link = f'https://www.milanuncios.com/alquiler-de-pisos-en-{town}-malaga/?' \
                    f'desde={prise_from}&hasta={prise_to}&demanda=n&banosd=2&dormd=3'
             number = get_number(link)
-            final_list.append(number)
+            final_values_list.append(number)
             counter += 1
             print(visualization(counter))
 
     for town in towns:
-        link = f'https://www.milanuncios.com/alquiler-de-pisos-en-{town}-malaga/?demanda=n&banosd=1&dormd=4'
+        link = f'https://www.milanuncios.com/alquiler-de-pisos-en-{town}-malaga/?' \
+               f'demanda=n&banosd=1&dormd=4'
         number = get_number(link)
-        final_list.append(number)
+        final_values_list.append(number)
         counter += 1
         print(visualization(counter))
 
-    print(final_list)
-    excel_writing('Estadistica.xlsm')
-    # open the file Estadistica.xlsm for visual viewing
-    os.startfile('Estadistica.xlsm')
+    print(final_values_list)
+    excel_writing(excel_file, final_values_list)
+    os.startfile(excel_file)
+
+    # work with database db.sqlite3
+    final_list: List[Union[str, int]] = [date_now] + final_values_list
+    last_entry: tuple = get_last_entry(db, table_name)
+    last_entry_date: str = last_entry[0]
+    last_entry_list: list = list(last_entry[1:])
+    diff_days: int = diff_dates(last_entry_date, date_now)
+
+    if diff_days == 1:
+        insert_entry(db, table_name, [final_list])
+    elif diff_days > 1:
+        multi_list = estimated_values(last_entry_list, final_values_list, diff_days)
+        for i in range(diff_days - 1):
+            multi_list[i] = [add_days(last_entry_date, i + 1)] + multi_list[i]
+        multi_final_list = multi_list + [final_list]
+        insert_entry(db, table_name, multi_final_list)
+    os.startfile(db)

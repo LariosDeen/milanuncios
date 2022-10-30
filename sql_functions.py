@@ -1,9 +1,9 @@
 import math
 import sqlite3 as sq
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
 from typing import List, Union
 
-date_now = date.today().strftime('%Y-%m-%d')
+date_now: str = date.today().strftime('%Y-%m-%d')
 
 
 def get_last_entry(database_name: str, table_name: str) -> tuple:
@@ -27,16 +27,17 @@ def diff_dates(start_day: str, stop_day: str) -> int:
     return difference
 
 
-def insert_entry(database_name: str, table_name: str, lst: list) -> None:
-    """Add entries into <database_name> <table_name> from list of tuples."""
+def insert_entry(database_name: str, table_name: str, lst: List[list]) -> None:
+    """Add entries into <database_name> <table_name> from list of tuples/lists."""
     with sq.connect(database_name) as con:
         cur = con.cursor()
-        # cur.execute('INSERT INTO prices VALUES %r;' % (tuple(params),))
         cur.executemany(f'INSERT INTO {table_name} VALUES(?,?,?,?,?,?,?,?,?,?,?)', lst)
 
 
-def estimated_values(lst_1: list, lst_2: list, parts: int) -> list:
-    """Returns the suggested entries as a list of lists of values for the missing days."""
+def estimated_values(lst_1: list, lst_2: list, parts: int) -> List[list]:
+    """Returns the suggested entries without dates as a list of lists of values
+    for the missing days.
+    """
     result_lst = []
     difference_lst = []
     entry = []
@@ -51,7 +52,7 @@ def estimated_values(lst_1: list, lst_2: list, parts: int) -> list:
 
 
 def add_days(init_date: str, days: int) -> str:
-    """Returns date adding days to initial date."""
+    """Returns date adding days to initial date <init_date>."""
     date_init = datetime.strptime(init_date, '%Y-%m-%d')
     date_result = (date_init + timedelta(days=days)).date()
     return str(date_result)
@@ -82,3 +83,8 @@ def delete_table(database_name: str, table_name: str):
     with sq.connect(database_name) as con:
         cur = con.cursor()
         cur.execute(f'DROP TABLE IF EXISTS {table_name}')
+
+
+# create_table('db.sqlite3', 'prices')
+import os
+os.startfile('db.sqlite3')
