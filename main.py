@@ -12,7 +12,7 @@ class Blocked(Exception):
     pass
 
 
-def get_number(lnk: str):
+def get_number(lnk: str) -> int:
     """Returns an integer number of properties on the web page by reference lnk."""
     r = session.get(lnk)
     try:
@@ -32,8 +32,8 @@ def get_number(lnk: str):
         return 0
 
 
-def prises_list(start_price: int):
-    """List of twains of price forks."""
+def prises_list(start_price: int) -> list:
+    """List of twains (as a tuple) of price forks."""
     lst = []
     for i in range(0, 301, 100):
         twain = (str(start_price + i), str(start_price + i + 99))
@@ -41,7 +41,7 @@ def prises_list(start_price: int):
     return lst
 
 
-def visualization(count: int):
+def visualization(count: int) -> str:
     """Visualization of the script process in terminal."""
     zero = lambda x: '' if x >= 10 else '0'
     num_dict = {1: 'st', 2: 'nd', 3: 'rd'}
@@ -53,7 +53,7 @@ def visualization(count: int):
     return f'Parsing of {zero(count)}{count}-{suffix} page' + ' ' * empty_space + ' ...'
 
 
-def excel_writing(filename: str):
+def excel_writing(filename: str) -> None:
     """Fills the excel file"""
     # working with file filename ('Example.xlsm')
     book = load_workbook(filename=filename, read_only=False, keep_vba=True)
