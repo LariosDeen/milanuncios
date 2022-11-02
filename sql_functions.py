@@ -1,7 +1,7 @@
 import math
 import sqlite3 as sq
 from datetime import date, datetime, timedelta
-from typing import List, Union
+from typing import List
 
 date_now: str = date.today().strftime('%Y-%m-%d')
 
@@ -27,7 +27,7 @@ def diff_dates(start_day: str, stop_day: str) -> int:
     return difference
 
 
-def insert_entry(database_name: str, table_name: str, lst: List[list]) -> None:
+def add_entries(database_name: str, table_name: str, lst: List[list]) -> None:
     """Add entries into <database_name> <table_name> from list of tuples/lists."""
     with sq.connect(database_name) as con:
         cur = con.cursor()
@@ -86,5 +86,3 @@ def delete_table(database_name: str, table_name: str):
 
 
 # create_table('db.sqlite3', 'prices')
-import os
-os.startfile('db.sqlite3')
