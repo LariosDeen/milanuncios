@@ -85,4 +85,8 @@ def delete_table(database_name: str, table_name: str):
         cur.execute(f'DROP TABLE IF EXISTS {table_name}')
 
 
-# create_table('db.sqlite3', 'prices')
+if __name__ == '__main__':
+    """Creates database 'db.sqlite3' with table 'prices' inside the directory 
+    of the current project.
+    """
+    create_table('db.sqlite3', 'prices')
