@@ -5,7 +5,7 @@ from requests_html import HTMLSession
 
 from excel_functions import excel_writing
 from sql_functions import (
-    get_last_entry, diff_dates, add_entries, estimated_values, add_days,
+    get_last_entry, diff_dates, add_entrie, estimated_values, add_days,
     date_now
 )
 
@@ -93,14 +93,14 @@ if __name__ == '__main__':
     diff_days: int = diff_dates(last_entry_date, date_now)
     if diff_days == 1:
         print('when diff_days == 1:', final_list)
-        add_entries(db, table_name, [final_list])
+        add_entrie(db, table_name, [final_list])
     elif diff_days > 1:
         multi_list = estimated_values(last_entry_list, final_values_list, diff_days)
         for i in range(diff_days - 1):
             multi_list[i] = [add_days(last_entry_date, i + 1)] + multi_list[i]
         multi_final_list = multi_list + [final_list]
         print('when diff_days > 1:', multi_final_list)
-        add_entries(db, table_name, multi_final_list)
+        add_entrie(db, table_name, multi_final_list)
     os.startfile(db)
 
     os.startfile(excel_file)

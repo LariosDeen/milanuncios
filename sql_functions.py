@@ -27,7 +27,7 @@ def diff_dates(start_day: str, stop_day: str) -> int:
     return difference
 
 
-def add_entries(database_name: str, table_name: str, lst: List[list]) -> None:
+def add_entrie(database_name: str, table_name: str, lst: List[list]) -> None:
     """Add entries into <database_name> <table_name> from list of tuples/lists."""
     with sq.connect(database_name) as con:
         cur = con.cursor()
